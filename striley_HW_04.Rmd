@@ -1,0 +1,196 @@
+---
+title: "Week 04"
+author: "Taylor Riley(mailto:striley@uw.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d %H:%M")`'
+output:
+  bookdown::html_document2
+---
+
+
+```{r, include=F}
+### -----------------------------------------------------------
+# Set up
+library(tidyverse)
+library(magrittr)
+library(kableExtra)
+library(stargazer)
+library(pander)
+library(psych)
+library(readstata13)
+library(knitr)
+library(animation)
+library(bookdown)
+library(rmarkdown)
+
+
+```
+
+Table of Contents 
+
+A. Questions/Answers 
+<p>&nbsp;</p>
+B. Source Code for this document
+
+
+<p>&nbsp;</p>
+
+A. Questions/Answers 
+
+
+
+
+```{r Q1, include = F}
+### -----------------------------------------------------------
+### Create data
+
+gradpain <- c(rep(0,11), rep(1,1), rep(2,2), rep(3,6), rep(4,8), rep(5,10),
+rep(6,8), rep(7,30), rep(8,10), rep(9,6), rep(10,2))
+
+barplot(table(gradpain), las=1, ylab="Frequency", xlab="Pain Scale",
+main="How painful is graduate school?")
+
+# Get number of students 
+gradpain <- data.frame(gradpain)
+nrow(gradpain)
+
+mean(gradpain$gradpain)
+
+
+```
+
+1. How many graduate students are in the sample?
+<p>&nbsp;</p>
+
+There are `r nrow(gradpain)` graduate students in the sample.
+
+<p>&nbsp;</p>
+
+2. What is the sample mean?
+<p>&nbsp;</p>
+
+The sample mean is `r mean(gradpain$gradpain) %>% round(2)`.
+
+<p>&nbsp;</p>
+
+```{r Q3, include = F}
+### -----------------------------------------------------------
+### Functions with bootstrap
+
+# Create vector
+gradpain.vec <- gradpain$gradpain
+
+# Defining function with d.vec and n arguments
+my_function <- function(d.vec, n) {
+  
+  sample <- sample(x = d.vec, size = n, replace = TRUE) 
+  
+  list <- list(
+    sample_size = n,
+    sample_mean = mean(sample)
+  )
+  
+  return(list)
+}
+
+# Verifying the function works with data
+my_function(d.vec = gradpain.vec, n = length(gradpain.vec))
+
+# Loopin to run the function 100 times
+my.function.samples <- rep(NA, 100)
+
+set.seed(7)  # make your work reproducible
+
+for(i in 1:100){
+  
+  my.list.results <- my_function(gradpain.vec, length(gradpain.vec))
+  my.function.samples[i] <- my.list.results$sample_mean
+}
+
+
+# mean
+mean(my.function.samples)
+
+# SD
+sd(my.function.samples)
+
+ 
+```
+
+3. What is the mean of these 100 means?
+<p>&nbsp;</p>
+
+The mean of these 100 means is `r mean(my.function.samples) %>% round(2)`. 
+
+<p>&nbsp;</p>
+
+4. What is the standard deviation of these 100 means?
+<p>&nbsp;</p>
+
+The standard deviation is `r sd(my.function.samples) %>% round(2)`.
+
+<p>&nbsp;</p>
+
+
+```{r Q5, include = F}
+### -----------------------------------------------------------
+### Functions with bootstrap
+
+# Create vector
+gradpain.vec <- gradpain$gradpain
+
+# Defining function with d.vec and n arguments
+my_function2 <- function(d.vec, n, num.samples) {
+  
+  sample <- sample(x = d.vec, size = n, replace = TRUE) 
+  
+  list <- list(
+    sample_size = n,
+    sample_mean = mean(sample),
+    n = num.samples,
+    sd = sd(sample),
+    ll95 = mean(sample) - 1.96 * (sd(sample)/sqrt(n)),
+    ul95 = mean(sample) + 1.96 * (sd(sample)/sqrt(n))
+  )
+  
+  return(list)
+  
+  my.function.samples <- rep(NA, num.samples)
+  for(i in 1:num.samples){
+  
+  my.list.results <- my_function(gradpain.vec, length(gradpain.vec))
+  my.function.samples[i] <- my.list.results$sample_mean
+}
+  
+}
+
+# Verifying the function works with data
+my_function2(d.vec = gradpain.vec, n = length(gradpain.vec), num.samples = 100)
+
+ 
+```
+
+5. What does your function return for the mean of means?
+<p>&nbsp;</p>
+
+The mean of means returned is 5.638.
+<p>&nbsp;</p>
+
+6. What does your function return for the standard deviation of means?
+<p>&nbsp;</p>
+
+The standard deviation of means is 2.56
+<p>&nbsp;</p>
+
+
+7. What does your function return for the 95% confidence interval around the mean?
+<p>&nbsp;</p>
+
+The 95% CI around the mean is (5.12, 6.16)
+<p>&nbsp;</p>
+
+
+
+## Code Appendix
+
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE}
+```
