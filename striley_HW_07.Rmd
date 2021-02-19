@@ -24,8 +24,8 @@ library(rmarkdown)
 
 
 # Load data 
-data <- readstata13::read.dta13("../data/AHwave1_v1.dta")
-
+data <- haven::read_dta("http://staff.washington.edu/phurvitz/csde502_winter_2021/data/AHwave1_v1.dta")
+attributes(data$h1gi1m)$labels
 
 
 ```
