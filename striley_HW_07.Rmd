@@ -1,0 +1,176 @@
+---
+title: "Week 07"
+author: "Taylor Riley(mailto:striley@uw.edu)"
+date: '`r format(Sys.time(), "%Y-%m-%d %H:%M")`'
+output:
+  bookdown::html_document2
+---
+
+
+```{r setup, include=F}
+### -----------------------------------------------------------
+# Set up
+library(tidyverse)
+library(magrittr)
+library(kableExtra)
+library(stargazer)
+library(pander)
+library(psych)
+library(readstata13)
+library(knitr)
+library(animation)
+library(bookdown)
+library(rmarkdown)
+
+
+# Load data 
+data <- readstata13::read.dta13("../data/AHwave1_v1.dta")
+
+
+
+```
+
+
+# Study Overview 
+
+The National Longitudinal Study of Adolescent to Adult Health (Add Health) is a longitudinal study of a nationally representative sample of over 20,000 adolescents who were in grades 7-12 during the 1994-95 school year, and have been followed for five waves to date (https://addhealth.cpc.unc.edu/). This data is from the Add Health Wave 1 data set. 
+
+We will specifically explore poor appetite and depression among adolescents assigned female or male at birth. 
+
+
+
+```{r q1, include = F}
+### -----------------------------------------------------------
+### 
+
+# Create new dataframe 
+data_new <- data %>%
+  select(aid, bio_sex, h1fs2, h1fs6)
+
+
+# h1fs2 - You didn’t feel like eating, your appetite was poor.
+table(data$h1fs2)
+# h1fs6 - You felt depressed.
+table(data$h1fs6)
+
+
+# Set columns to factors
+data_new$bio_sex <- as.factor(data_new$bio_sex)
+data_new$poor_appetite <- as.factor(data_new$h1fs2)
+data_new$depressed <- as.factor(data_new$h1fs6)
+
+levels(data_new$poor_appetite)
+
+
+
+```
+
+
+# Descriptive data
+
+The following tables and graphs show the proportion of females and males reporting poor appetite and depression on a Likert scale. 
+
+
+
+```{r q2, echo= F, warning = F, message = F}
+### -----------------------------------------------------------
+### Create some frequency tables
+#a.	Create a frequency table from each variable, using both counts and percentages.
+
+
+# Tabulate by sex
+tab_sex <- data_new %>% 
+  group_by(bio_sex) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  mutate("%" = round(n / sum(n) * 100, 2))
+
+
+# print the table with better printed names
+kable(tab_sex, col.names = c("Sex assigned at bith", "n", "%"), caption = "Distribution of sex assigned at birth") %>% 
+    kable_styling(bootstrap_options = 
+                      c("striped", "hover", "condensed", "responsive"), 
+                  full_width = F, 
+                  position = "left")
+
+# Tabulate by poor appetite
+tab_poorapp <- data_new %>% 
+  group_by(poor_appetite) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  mutate("%" = round(n / sum(n) * 100, 2))
+
+
+# print the table with better printed names
+kable(tab_poorapp, col.names = c("Reported frequency of poor appetite", "n", "%"), caption = "Distribution of reported poor appetite in the past week") %>% 
+    kable_styling(bootstrap_options = 
+                      c("striped", "hover", "condensed", "responsive"), 
+                  full_width = F, 
+                  position = "left")
+
+
+# Tabulate by depression
+tab_depressed <- data_new %>% 
+  group_by(depressed) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  mutate("%" = round(n / sum(n) * 100, 2))
+
+
+# print the table with better printed names
+kable(tab_depressed, col.names = c("Reported frequency of feeling depressed", "n", "%"), caption = "Distribution of reported depression in the past week") %>% 
+    kable_styling(bootstrap_options = 
+                      c("striped", "hover", "condensed", "responsive"), 
+                  full_width = F, 
+                  position = "left")
+
+# b.	Create a frequency table based on at least two variables, also with counts and percentages.
+
+
+# tabulate poor appetite by sex 
+tab_app_male <- data_new %>% 
+   filter(poor_appetite != "(6) Refused" & poor_appetite != "(8) Don't know") %>% 
+    filter(bio_sex == "(1) Male") %>% 
+    group_by(poor_appetite) %>% 
+    summarise(n = n(), .groups = "drop_last") %>% 
+    mutate("%" = round(n / sum(n) * 100, 2))
+
+tab_app_female <- data_new %>% 
+   filter(poor_appetite != "(6) Refused" & poor_appetite != "(8) Don't know") %>% 
+    filter(bio_sex == "(2) Female") %>% 
+    group_by(poor_appetite) %>% 
+    summarise(n = n(), .groups = "drop_last") %>% 
+    mutate("%" = round(n / sum(n) * 100, 2))
+
+
+tab_app_sex <- cbind(tab_app_male, tab_app_female)
+tab_app_sex[,4] <- NULL
+
+# print the table with better printed names
+kable(tab_app_sex, col.names = c("Self-reported Health", "n", "%", "n", "%"), caption = "Reported poor appetite in the past week by sex assigned at birth") %>% 
+    kable_styling(bootstrap_options = 
+                      c("striped", "hover", "condensed", "responsive"), 
+                  full_width = F, 
+                  position = "left") %>% 
+    add_header_above(c(" " = 1, "Male" = 2, "Female" = 2))
+
+
+### Create at least one graph from data in the data frame.
+
+#  Barchart
+data_new %>%
+  filter(bio_sex != "(6) Refused") %>%
+  filter(poor_appetite != "(6) Refused" & poor_appetite != "(8) Don't know") %>% 
+ggplot(., aes(x=poor_appetite, fill=bio_sex)) + 
+  geom_bar(position="fill")+
+  theme_classic()+
+  ylab("Percentage")+
+  xlab("Reported poor appetite in past week")+
+  ggtitle("Figure 1. Proportion reported poor appetite in past week by sex assigned at birth")
+
+ 
+```
+
+
+
+# Code Appendix
+
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE}
+```
