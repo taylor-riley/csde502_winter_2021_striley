@@ -1,0 +1,136 @@
+---
+title: "CSDE 502 Winter 2021, Assignment 10"
+author: " Taylor Riley [mailto:striley@uw.edu]"
+output: 
+    bookdown::html_document2:
+        number_sections: true
+        self_contained: true
+        code_folding: hide
+        toc: true
+        toc_float:
+            collapsed: true
+            smooth_scroll: false
+    pdf_document:
+        number_sections: true
+        toc: true
+        fig_cap: yes
+        keep_tex: yes
+urlcolor: blue 
+---
+
+```{r, include = F}
+library(captioner)
+library(captioner)
+library(kableExtra)
+library(stargazer)
+library(pander)
+library(psych)
+library(readstata13)
+library(knitr)
+library(animation)
+library(bookdown)
+library(rmarkdown)
+library(tidyverse)
+library(naniar)
+
+
+figure_nums <- captioner(prefix = "Figure")
+table_nums <- captioner(prefix = "Table")
+
+data <- read.table("../data/Deaths_1x1.txt", skip = 2, header = TRUE)
+
+# Review data
+table(data$Year)
+
+```
+
+# Introduction 
+
+Australia, officially named the Commonwealth of Australia, is a sovereign country comprising the mainland of the Australian continent and numerous smaller islands. It is the largest country in Oceania and the world's sixth-largest country by total area. They have kangaroos!
+
+This study will examine sex-specific mortality over time in Australia.
+
+
+# Methods
+
+## Data
+
+We used data from http://www.mortality.org for Australia. 
+
+
+## Analysis
+
+We ran a descriptive analysis on total number mortality trends among males and females in Australia from 1921 to 2018. 
+
+
+# Results
+
+
+The number of male deaths is always slightly higher than female deaths each year. Total mortality numbers are increasing over time, but this data does not control for population growth. 
+
+```{r, echo = F, message = F, warning = F}
+
+data_new <- data %>%
+    group_by(Year) %>%
+    summarize(
+        sum_female = sum(Female),
+        sum_male = sum(Male),
+        sum_total = sum(Total))
+
+# Table - deaths by year
+
+# print the table with better printed names
+kable(data_new, col.names = c("Year", "Female", "Male", "Total"), caption = "Total deaths in Australia, by sex and total") %>% 
+    kable_styling(bootstrap_options = 
+                      c("striped", "hover", "condensed", "responsive"), 
+                  full_width = F, 
+                  position = "left")
+
+
+# Total deaths 
+data_new %>%
+    ggplot(aes(x = Year, y=sum_total))+
+    geom_point()+
+    theme(panel.background = element_rect(fill = 'white', colour = 'black'))+  
+  xlab("Year")+
+  ylab("Total deaths in Australia")+
+  geom_smooth(method = "lm")
+
+
+# Female deaths 
+data_new %>%
+    ggplot(aes(x = Year, y=sum_female))+
+    geom_point()+
+    theme(panel.background = element_rect(fill = 'white', colour = 'black'))+  
+  xlab("Year")+
+  ylab("Total FEMALE deaths in Australia")+
+  geom_smooth(method = "lm")
+
+# Male deaths 
+data_new %>%
+    ggplot(aes(x = Year, y=sum_male))+
+    geom_point()+
+    theme(panel.background = element_rect(fill = 'white', colour = 'black'))+  
+  xlab("Year")+
+  ylab("Total MALE deaths in Australia")+
+  geom_smooth(method = "lm")
+
+
+
+```
+
+
+# Discussion 
+
+
+Total mortality numbers are increasing over time, but this data does not control for population growth. 
+
+
+
+
+
+
+
+# Code Appendix 
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE}
+```
